@@ -1,10 +1,14 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import { loadConfig } from './config.js';
 import { openSqlite } from './db/sqlite.js';
+import { requestOTPHandler, verifyOTPHandler } from './routes/auth.routes.js';
 
 export const server = Fastify({ logger: false });
 
 server.get('/health', async () => ({ status: 'ok' }));
+server.post('/auth/request-otp', requestOTPHandler);
+server.post('/auth/verify-otp', verifyOTPHandler);
 
 let db: ReturnType<typeof openSqlite> | null = null;
 
