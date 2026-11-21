@@ -88,23 +88,24 @@
 ### Task T1.4: Foundry tests: BR-01..09 + invariants
 **Description:** Full test coverage mapping each business rule to a named test, plus invariant suite.
 **Acceptance criteria:**
-- [ ] BR-01: outsider `belanja` → `BUKAN_PENERIMA`; valid recipient passes
-- [ ] BR-02: non-whitelisted store → `BUKAN_WHITELIST`; listed-then-delisted flow
-- [ ] BR-03: beyond quota → `JATAH_HABIS`; beyond pool → `POOL_HABIS`
-- [ ] BR-04: `jumlah > maxPerTx` → `LIMIT`
-- [ ] BR-05: daily total across txs > `maxPerHari` → `LIMIT`
-- [ ] BR-06: past `expiry` → `EXPIRED`
-- [ ] BR-07: nonce reuse → `NONCE_DIGUNAKAN`
-- [ ] BR-08 invariant: contract token balance decreases only via `Belanja` events to whitelisted stores; no admin withdraw
-- [ ] BR-09: delist → in-flight valid-expiry checkout reverts `BUKAN_WHITELIST`
-- [ ] Invariants: pool solvency (`balanceOf == totalDonasi − totalBelanja`); `sudahBelanja ≤ jatahPerPenerima`; nonce never repeats
-- [ ] Agent-restriction test: non-agent non-owner caller → revert (not a BR but per Decision 1)
+- [x] BR-01: outsider `belanja` → `BUKAN_PENERIMA`; valid recipient passes
+- [x] BR-02: non-whitelisted store → `BUKAN_WHITELIST`; listed-then-delisted flow
+- [x] BR-03: beyond quota → `JATAH_HABIS`; beyond pool → `POOL_HABIS`
+- [x] BR-04: `jumlah > maxPerTx` → `LIMIT`
+- [x] BR-05: daily total across txs > `maxPerHari` → `LIMIT`
+- [x] BR-06: past `expiry` → `EXPIRED`
+- [x] BR-07: nonce reuse → `NONCE_DIGUNAKAN`
+- [x] BR-08 invariant: contract token balance decreases only via `Belanja` events to whitelisted stores; no admin withdraw
+- [x] BR-09: delist → in-flight valid-expiry checkout reverts `BUKAN_WHITELIST`
+- [x] Invariants: pool solvency (`balanceOf == totalDonasi − totalBelanja`); `sudahBelanja ≤ jatahPerPenerima`; nonce never repeats
+- [x] Agent-restriction test: non-agent non-owner caller → revert (not a BR but per Decision 1)
 **Verification:**
-- [ ] `forge test -vvv` all green
-- [ ] `forge coverage` touches every BR branch
+- [x] `forge test -vvv` all green
+- [x] `forge coverage` touches every BR branch
 **Dependencies:** T1.1, T1.2, T1.3
 **Files likely touched:** `contracts/test/Campaign.t.sol`, `contracts/test/CampaignFactory.t.sol`, `contracts/test/invariant/`
 **Estimated scope:** M
+**Done:** 2026-11-21 — invariant suite lives at `contracts/test/Campaign.invariant.t.sol` (flat layout instead of `test/invariant/` subdir — equally discoverable). BR unit tests pre-existed in T1.2/T1.3 (36+5=41 unit tests covering BR-01..09 in named functions); T1.4 added the stateful invariant runner. Fuzzer initially called MockIDRX.faucet() directly (eaten as a sender seed = Campaign address), breaking pool-solvency bookkeeping — real harness bug, not contract bug. Fixed via `targetContract(address(handler))` + `excludeContract` on token/campaign. Final: 3 invariants hold across 256 runs × 500 depth = 128k Handler-calls, ~90% revert rate (BR checks firing under fuzz as expected). Foundation phase contracts build complete.
 
 ### Task T2.1: Deploy MockIDRX + CampaignFactory to Base Sepolia (Remix)
 **Description:** Deploy contracts to Base Sepolia testnet via Remix per PRD §6.
