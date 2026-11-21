@@ -8,11 +8,10 @@ out/
 dist/
 cache/
 
-# Foundry (contracts/)
+# Foundry (contracts/) — cache/out/broadcast ignored; lib/ tracked as submodules
 contracts/cache/
 contracts/out/
 contracts/broadcast/
-contracts/lib/
 
 # Environment
 .env

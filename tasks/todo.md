@@ -25,15 +25,16 @@
 ### Task T0.2: git init + initial commit + .gitignore
 **Description:** Initialize VCS for the repo and commit the specs + scaffold.
 **Acceptance criteria:**
-- [ ] `git init` run; `.gitignore` excludes `node_modules`, `.env`, `.next`, `out`, `cache`, `data/` (agentmemory store), `.opencode/` (already ignored)
-- [ ] Initial commit includes: `prd.md`, `CONTEXT.md`, `CAPABILITY_MAP.md`, `SPEC-*.md`, `docs/intent/`, `tasks/`, scaffold from T0.1
-- [ ] Commit message follows convention (e.g., `chore: scaffold Bound monorepo + specs`)
+- [x] `git init` run; `.gitignore` excludes `node_modules`, `.env`, `.next`, `out`, `cache`, `data/` (agentmemory store), `.opencode/` (already ignored)
+- [x] Initial commit includes: `prd.md`, `CONTEXT.md`, `CAPABILITY_MAP.md`, `SPEC-*.md`, `docs/intent/`, `tasks/`, scaffold from T0.1
+- [x] Commit message follows convention (e.g., `chore: scaffold Bound monorepo + specs`)
 **Verification:**
-- [ ] `git status` clean after commit
-- [ ] `git log --oneline` shows one commit
+- [x] `git status` clean after commit
+- [x] `git log --oneline` shows one commit
 **Dependencies:** T0.1
 **Files likely touched:** `.gitignore`, repo root
 **Estimated scope:** S
+**Done:** 2026-11-21 — commit `4784546` on branch `main`, 30 files, includes pnpm-lock.yaml (10044 lines), all specs + design-system docs. T0.1 + T0.2 folded into one atomic initial commit since the repo wasn't yet a VCS (T0.2's sole purpose is the initial commit of T0.1's scaffolds).
 
 ### Task T1.1: MockIDRX.sol (ERC20 + faucet)
 **Description:** Implement the mock IDR stable token with a public faucet per SPEC-contracts Decisions.
