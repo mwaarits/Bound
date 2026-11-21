@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+.next/
+out/
+dist/
+cache/
+
+# Foundry (contracts/)
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+contracts/lib/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OpenCode tooling
+.opencode/
+
+# Agent memory store
+data/
