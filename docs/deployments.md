@@ -12,7 +12,7 @@
 | CampaignFactory | 0xBEEEfb11B32451756F716cea1009711DA8Ea6512 | ✅ has bytecode | createCampaign → Campaign; event-only discovery |
 | Campaign (Banjir Demak 2025) | 0x7BA7A2D69eA39253572DbE0094d8310FEB9ee0ef | ✅ owner=Operator, jatah=500K, token=MockIDRX | jatah 500K, maxPerTx 200K, maxPerHari 500K |
 | Operator EOA | 0xeD0d1Ac68e75246EbFD8E54bC4A4C898C3B3faE1 | ✅ owner of Campaign | Bound Operator MetaMask account |
-| Relayer EOA | 0x8ba8dA7065dd0D5d9150f83888A50eE999199E26 | ⚠️ NOT YET SET AS AGENT | Must call setAgent on Campaign; agent currently 0x0 |
+| Relayer EOA | 0x8ba8dA7065dd0D5d9150f83888A50eE999199E26 | ✅ set as agent on Campaign | Relayer EOA; pays belanja() gas; funded by operator in T10.5 |
 
 ## RPC + utility
 
@@ -23,21 +23,6 @@
 | Primary RPC | `https://ethereum-sepolia-rpc.publicnode.com` (Decision Q-3 — primary only, no fallback) |
 | Block explorer | https://sepolia.etherscan.io |
 | Faucet | see `docs/demo-prep.md` §0.3 (Ethereum Sepolia faucets, not Base) |
-
-## ⚠️ Action required: setAgent
-
-The Campaign's `agent` is still `0x0000000000000000000000000000000000000000`. The relayer CANNOT submit `belanja()` calls until the operator calls `setAgent(relayer_EOA)` on the Campaign contract.
-
-To fix via Remix:
-1. Contract dropdown → select **Campaign**
-2. "Add Contract" / "At Address" → paste `0x7BA7A2D69eA39253572DbE0094d8310FEB9ee0ef`
-3. Find `setAgent` → paste `0x8ba8dA7065dd0D5d9150f83888A50eE999199E26`
-4. Click transact → MetaMask confirm (Ethereum Sepolia, Bound Operator account)
-
-Or via Etherscan:
-1. Open https://sepolia.etherscan.io/address/0x7BA7A2D69eA39253572DbE0094d8310FEB9ee0ef#writeContract
-2. Connect to Web3 → Bound Operator account
-3. Find `setAgent` → paste relayer address → Write
 
 ## ⚠️ Action required: relayer private key
 
@@ -54,4 +39,4 @@ Live in `contracts/out/` after each `forge build` (Foundry artifacts). The web m
 | 2026-11-21 | MockIDRX deploy | TBD | Ethereum Sepolia (not Base Sepolia) |
 | 2026-11-21 | CampaignFactory deploy | TBD | |
 | 2026-11-21 | createCampaign("Banjir Demak 2025", 500K, 200K, 500K) | TBD | |
-| TBD | setAgent(relayer_EOA) | TBD | ⚠️ NOT YET DONE — required before demo |
+| 2026-11-21 | setAgent(relayer_EOA) | TBD | ✅ Verified: agent=0x8ba8dA7065dd0D5d9150f83888A50eE999199E26 |
