@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #047857;
+  }
+}
+
+.text-numeric-ledger {
+  font-feature-settings: 'tnum' 1;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+.text-numeric-penerima {
+  font-feature-settings: 'tnum' 1;
+}
