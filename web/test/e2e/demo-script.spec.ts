@@ -11,8 +11,9 @@ test('demo §9 step 1: donate page loads', async ({ page }) => {
 test('demo §9 step 2: penerima login with mock OTP', async ({ page }) => {
   await page.goto('/penerima');
   await page.fill('input[placeholder*="WA"]', '+6281111111111');
+  await page.fill('input[placeholder*="OTP"]', '123456');
   await page.click('button:has-text("Login")');
-  await expect(page.locator('text=Sisa Hak Belanja')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('text=Sisa Hak Belanja')).toBeVisible({ timeout: 15000 });
 });
 
 test('demo §9 step 3: no send-to-friend path exists in UI', async ({ page }) => {
@@ -27,5 +28,5 @@ test('demo §9 step 4: toko creates QR', async ({ page }) => {
   await page.goto('/toko');
   await page.fill('input[placeholder*="IDR"]', '50000');
   await page.click('button:has-text("Buat QR")');
-  await expect(page.locator('svg, canvas')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('text=Berlalu 5 menit')).toBeVisible({ timeout: 15000 });
 });

@@ -9,6 +9,13 @@ import { faucetEmbeddedHandler, donateEmbeddedHandler } from './routes/donate.ro
 
 export const server = Fastify({ logger: false });
 
+server.addHook('onRequest', async (req, reply) => {
+  reply.header('Access-Control-Allow-Origin', '*');
+  reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') reply.status(204).send();
+});
+
 server.get('/health', async () => ({ status: 'ok' }));
 server.post('/auth/request-otp', requestOTPHandler);
 server.post('/auth/verify-otp', verifyOTPHandler);

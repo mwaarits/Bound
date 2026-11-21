@@ -9,6 +9,7 @@ export async function relayerPost<T = unknown>(path: string, body: unknown, toke
     },
     body: JSON.stringify(body),
   });
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
