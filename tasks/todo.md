@@ -54,20 +54,21 @@
 ### Task T1.2: Campaign.sol (state, errors, donasi, belanja, setters, events)
 **Description:** Implement the Campaign contract — pool, whitelist, recipients, quota+limits, donasi, belanja (agent-restricted, expiry+nonce), setters, events, zero transfer path.
 **Acceptance criteria:**
-- [ ] State: `token` (immutable), `agent`, `jatahPerPenerima`, `maxPerTx`, `maxPerHari`, `isWhitelist`, `isPenerima`, `sudahBelanja`, `belanjaHariIni` (per-day), `nonceTerpakai`
-- [ ] Custom errors exactly named: `BUKAN_PENERIMA`, `BUKAN_WHITELIST`, `JATAH_HABIS`, `POOL_HABIS`, `LIMIT`, `EXPIRED`, `NONCE_DIGUNAKAN`
-- [ ] `donasi(jumlah)`: transferFrom donor→campaign, emit `Donasi`
-- [ ] `belanja(penerima, toko, jumlah, nonce, expiry)`: `agent || owner` gated; BR-01..07 checks in order; transfer to `toko`; mark nonce; update `sudahBelanja` + daily; emit `Belanja`
-- [ ] `setWhitelist(toko, diizinkan)` + `setPenerimaBatch(orang[], diizinkan[])`: `onlyOwner`; emit per-entry events
-- [ ] `setAgent(addr)`: `onlyOwner`
-- [ ] BR-08 by construction: no withdraw/transfer path other than `belanja` to whitelisted store
-- [ ] `Ownable2Step` + `ReentrancyGuard`
+- [x] State: `token` (immutable), `agent`, `jatahPerPenerima`, `maxPerTx`, `maxPerHari`, `isWhitelist`, `isPenerima`, `sudahBelanja`, `belanjaHariIni` (per-day), `nonceTerpakai`
+- [x] Custom errors exactly named: `BUKAN_PENERIMA`, `BUKAN_WHITELIST`, `JATAH_HABIS`, `POOL_HABIS`, `LIMIT`, `EXPIRED`, `NONCE_DIGUNAKAN`
+- [x] `donasi(jumlah)`: transferFrom donor→campaign, emit `Donasi`
+- [x] `belanja(penerima, toko, jumlah, nonce, expiry)`: `agent || owner` gated; BR-01..07 checks in order; transfer to `toko`; mark nonce; update `sudahBelanja` + daily; emit `Belanja`
+- [x] `setWhitelist(toko, diizinkan)` + `setPenerimaBatch(orang[], diizinkan[])`: `onlyOwner`; emit per-entry events
+- [x] `setAgent(addr)`: `onlyOwner`
+- [x] BR-08 by construction: no withdraw/transfer path other than `belanja` to whitelisted store
+- [x] `Ownable2Step` + `ReentrancyGuard`
 **Verification:**
-- [ ] `forge build` clean
-- [ ] Compiled artifact size reasonable; no warnings
+- [x] `forge build` clean
+- [x] Compiled artifact size reasonable; no warnings
 **Dependencies:** T1.1
 **Files likely touched:** `contracts/src/Campaign.sol`
 **Estimated scope:** M
+**Done:** 2026-11-21 — 3 increments, 3 commits (`e547e46` Inc A setters, `cb22f8f` Inc B donasi, `02d6657` Inc C belanja+BR). 36 tests pass; 100% coverage (40/40 lines, 51/51 stmts, 10/10 branches, 7/7 funcs on Campaign.sol). Constructor: `(operator_, token_, jatahPerPenerima_, maxPerTx_, maxPerHari_)` with `Ownable(operator_)` modifier (OZ 5.x Ownable2Step is abstract; pass via linearized base name in constructor modifier list). Auxiliary non-canonical errors: `BukanAgent` (agent-or-owner auth guard) and `LengthMismatch` (setPenerimaBatch array parity). Spec check order preserved verbatim in belanja (BR-01→07 sequential). Daily counter uses `block.timestamp / 1 days` (UTC, day-2 timezone alignment out of MVP scope per decision).
 
 ### Task T1.3: CampaignFactory.sol (createCampaign + event)
 **Description:** Factory that deploys Campaign instances with operator-provided parameters.
