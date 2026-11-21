@@ -73,4 +73,9 @@ contract Campaign is Ownable2Step, ReentrancyGuard {
         maxPerHari = maxPerHari_;
         emit LimitDiubah(maxPerTx_, maxPerHari_);
     }
+
+    function donasi(uint256 jumlah) external nonReentrant {
+        token.transferFrom(msg.sender, address(this), jumlah);
+        emit Donasi(msg.sender, jumlah);
+    }
 }

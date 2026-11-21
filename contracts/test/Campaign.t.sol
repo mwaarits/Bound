@@ -172,8 +172,75 @@ contract CampaignTest is Test {
         campaign.setLimit(100_000e18, 300_000e18);
     }
 
+    function test_DonasiPullsApprovedTokensFromDonorToCampaign() public {
+        uint256 amount = 10_000_000e18;
+        address donatur = makeAddr("donatur");
+
+        token.faucet();
+        token.transfer(donatur, amount);
+        vm.startPrank(donatur);
+        token.approve(address(campaign), amount);
+        campaign.donasi(amount);
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(donatur), 0);
+        assertEq(token.balanceOf(address(campaign)), amount);
+    }
+
+    function test_DonasiEmitsDonasiEvent() public {
+        uint256 amount = 1_000_000e18;
+        address donatur = makeAddr("donatur-2");
+
+        token.faucet();
+        token.transfer(donatur, amount);
+        vm.startPrank(donatur);
+        token.approve(address(campaign), amount);
+
+        vm.expectEmit(true, true, true, true);
+        emit Donasi(donatur, amount);
+        campaign.donasi(amount);
+        vm.stopPrank();
+    }
+
+    function test_DonasiAccumulatesAcrossMultipleDonors() public {
+        address d1 = makeAddr("d1");
+        address d2 = makeAddr("d2");
+        uint256 a1 = 3_000_000e18;
+        uint256 a2 = 7_000_000e18;
+
+        token.faucet();
+        token.transfer(d1, a1);
+        token.faucet();
+        token.transfer(d2, a2);
+
+        vm.startPrank(d1);
+        token.approve(address(campaign), a1);
+        campaign.donasi(a1);
+        vm.stopPrank();
+
+        vm.startPrank(d2);
+        token.approve(address(campaign), a2);
+        campaign.donasi(a2);
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(address(campaign)), a1 + a2);
+    }
+
+    function test_DonasiRevertsIfAllowanceInsufficient() public {
+        uint256 amount = 1_000_000e18;
+        address donatur = makeAddr("donatur-no-approve");
+
+        token.faucet();
+        token.transfer(donatur, amount);
+        vm.startPrank(donatur);
+        vm.expectRevert();
+        campaign.donasi(amount);
+        vm.stopPrank();
+    }
+
     event AgentDiubah(address agent);
     event WhitelistDiubah(address indexed toko, bool diizinkan);
     event PenerimaDiubah(address indexed penerima, bool diizinkan);
     event LimitDiubah(uint256 maxPerTx, uint256 maxPerHari);
+    event Donasi(address indexed donatur, uint256 jumlah);
 }
