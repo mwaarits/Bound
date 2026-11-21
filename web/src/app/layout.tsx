@@ -2,6 +2,11 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import './globals.css';
 
+export const metadata = {
+  title: 'Bound, Donasi Anti-Judol',
+  description: 'Donasi terprogram yang hanya bisa dibelanjakan di toko whitelist.',
+};
+
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],

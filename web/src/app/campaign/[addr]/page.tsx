@@ -65,7 +65,7 @@ function PublicView() {
         </div>
         <div className="rounded-lg bg-bg-surface p-4 border border-border-subtle shadow-xs">
           <p className="text-body-sm text-text-secondary">Penerima</p>
-          <p className="text-numeric-ledger text-text-primary mt-1">3 terdaftar</p>
+          <p className="text-numeric-ledger text-text-primary mt-1">...</p>
         </div>
       </div>
 
