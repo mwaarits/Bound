@@ -78,4 +78,29 @@ contract Campaign is Ownable2Step, ReentrancyGuard {
         token.transferFrom(msg.sender, address(this), jumlah);
         emit Donasi(msg.sender, jumlah);
     }
+
+    function belanja(
+        address penerima,
+        address toko,
+        uint256 jumlah,
+        uint256 nonce,
+        uint256 expiry
+    ) external nonReentrant {
+        if (msg.sender != agent && msg.sender != owner()) revert BukanAgent();
+        if (!isPenerima[penerima]) revert BUKAN_PENERIMA();
+        if (!isWhitelist[toko]) revert BUKAN_WHITELIST();
+        if (sudahBelanja[penerima] + jumlah > jatahPerPenerima) revert JATAH_HABIS();
+        if (token.balanceOf(address(this)) < jumlah) revert POOL_HABIS();
+        if (jumlah > maxPerTx) revert LIMIT();
+        uint256 today = block.timestamp / 1 days;
+        if (belanjaHariIni[penerima][today] + jumlah > maxPerHari) revert LIMIT();
+        if (block.timestamp > expiry) revert EXPIRED();
+        if (nonceTerpakai[nonce]) revert NONCE_DIGUNAKAN();
+
+        nonceTerpakai[nonce] = true;
+        sudahBelanja[penerima] += jumlah;
+        belanjaHariIni[penerima][today] += jumlah;
+        token.transfer(toko, jumlah);
+        emit Belanja(penerima, toko, jumlah, nonce);
+    }
 }

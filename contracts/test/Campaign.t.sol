@@ -238,9 +238,177 @@ contract CampaignTest is Test {
         vm.stopPrank();
     }
 
+    function _setupDemoState(uint256 poolAmount) internal {
+        token.faucet();
+        token.approve(address(campaign), poolAmount);
+        campaign.donasi(poolAmount);
+
+        campaign.setAgent(relayer);
+        campaign.setWhitelist(toko1, true);
+        campaign.setWhitelist(toko2, true);
+
+        address[] memory orang = new address[](1);
+        orang[0] = penerima1;
+        bool[] memory diizinkan = new bool[](1);
+        diizinkan[0] = true;
+        campaign.setPenerimaBatch(orang, diizinkan);
+    }
+
+    function test_BelanjaSuccessMovesFundsAndEmitsEvent() public {
+        _setupDemoState(10_000_000e18);
+        uint256 jumlah = 50_000e18;
+        uint256 nonce = 1;
+        uint256 expiry = block.timestamp + 5 minutes;
+
+        uint256 poolBefore = token.balanceOf(address(campaign));
+        uint256 tokoBefore = token.balanceOf(toko1);
+
+        vm.prank(relayer);
+        vm.expectEmit(true, true, true, true);
+        emit Belanja(penerima1, toko1, jumlah, nonce);
+        campaign.belanja(penerima1, toko1, jumlah, nonce, expiry);
+
+        assertEq(token.balanceOf(address(campaign)), poolBefore - jumlah);
+        assertEq(token.balanceOf(toko1), tokoBefore + jumlah);
+        assertTrue(campaign.nonceTerpakai(nonce));
+        assertEq(campaign.sudahBelanja(penerima1), jumlah);
+    }
+
+    function test_BelanjaUpdatesDailyCounterPerUtcDay() public {
+        _setupDemoState(10_000_000e18);
+        uint256 today = block.timestamp / 1 days;
+        uint256 first = 50_000e18;
+        uint256 second = 100_000e18;
+
+        vm.startPrank(relayer);
+        campaign.belanja(penerima1, toko1, first, 1, block.timestamp + 5 minutes);
+        campaign.belanja(penerima1, toko2, second, 2, block.timestamp + 5 minutes);
+        vm.stopPrank();
+
+        assertEq(campaign.belanjaHariIni(penerima1, today), first + second);
+        assertEq(campaign.sudahBelanja(penerima1), first + second);
+    }
+
+    function test_BelanjaDailyCounterResetsAcrossUtcDayBoundary() public {
+        _setupDemoState(10_000_000e18);
+        uint256 day1 = block.timestamp / 1 days;
+
+        vm.prank(relayer);
+        campaign.belanja(penerima1, toko1, 50_000e18, 1, block.timestamp + 5 minutes);
+
+        vm.warp((day1 + 1) * 1 days + 1);
+        uint256 day2 = block.timestamp / 1 days;
+
+        vm.prank(relayer);
+        campaign.belanja(penerima1, toko1, 100_000e18, 2, block.timestamp + 5 minutes);
+
+        assertEq(campaign.belanjaHariIni(penerima1, day1), 50_000e18);
+        assertEq(campaign.belanjaHariIni(penerima1, day2), 100_000e18);
+        assertEq(campaign.sudahBelanja(penerima1), 150_000e18);
+    }
+
+    function test_BelanjaRevertsForNonAgentNonOwner() public {
+        _setupDemoState(10_000_000e18);
+        vm.prank(outsider);
+        vm.expectRevert(Campaign.BukanAgent.selector);
+        campaign.belanja(penerima1, toko1, 50_000e18, 1, block.timestamp + 5 minutes);
+    }
+
+    function test_BelanjaOwnerCanAlsoSubmit() public {
+        _setupDemoState(10_000_000e18);
+        campaign.belanja(penerima1, toko1, 50_000e18, 1, block.timestamp + 5 minutes);
+        assertEq(campaign.sudahBelanja(penerima1), 50_000e18);
+    }
+
+    function test_BR01_BelanjaRevertsWithBukanPenerimaForOutsider() public {
+        _setupDemoState(10_000_000e18);
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.BUKAN_PENERIMA.selector);
+        campaign.belanja(outsider, toko1, 50_000e18, 1, block.timestamp + 5 minutes);
+    }
+
+    function test_BR02_BelanjaRevertsWithBukanWhitelistForUnlistedStore() public {
+        _setupDemoState(10_000_000e18);
+        address unlisted = makeAddr("toko-palsu");
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.BUKAN_WHITELIST.selector);
+        campaign.belanja(penerima1, unlisted, 50_000e18, 1, block.timestamp + 5 minutes);
+    }
+
+    function test_BR03a_BelanjaRevertsWithJatahHabisWhenOverQuota() public {
+        _setupDemoState(10_000_000e18);
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.JATAH_HABIS.selector);
+        campaign.belanja(penerima1, toko1, JATAH + 1, 1, block.timestamp + 5 minutes);
+    }
+
+    function test_BR03b_BelanjaRevertsWithPoolHabisWhenPoolLow() public {
+        uint256 smallPool = 100_000e18;
+        _setupDemoState(smallPool);
+        uint256 jumlah = 150_000e18;
+
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.POOL_HABIS.selector);
+        campaign.belanja(penerima1, toko1, jumlah, 1, block.timestamp + 5 minutes);
+    }
+
+    function test_BR04_BelanjaRevertsWithLimitWhenOverMaxPerTx() public {
+        _setupDemoState(10_000_000e18);
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.LIMIT.selector);
+        campaign.belanja(penerima1, toko1, MAX_PER_TX + 1, 1, block.timestamp + 5 minutes);
+    }
+
+    function test_BR05_BelanjaRevertsWithLimitWhenDailyCapExceededAcrossTxs() public {
+        Campaign bigQuota = new Campaign(operator, address(token), 2_000_000e18, MAX_PER_TX, MAX_PER_HARI);
+        token.faucet();
+        token.approve(address(bigQuota), 10_000_000e18);
+        bigQuota.donasi(10_000_000e18);
+        bigQuota.setAgent(relayer);
+        bigQuota.setWhitelist(toko1, true);
+        bigQuota.setWhitelist(toko2, true);
+        address[] memory orang = new address[](1);
+        orang[0] = penerima1;
+        bool[] memory diizinkan = new bool[](1);
+        diizinkan[0] = true;
+        bigQuota.setPenerimaBatch(orang, diizinkan);
+
+        vm.startPrank(relayer);
+        bigQuota.belanja(penerima1, toko1, MAX_PER_TX, 1, block.timestamp + 5 minutes);
+        bigQuota.belanja(penerima1, toko2, MAX_PER_TX, 2, block.timestamp + 5 minutes);
+        vm.expectRevert(Campaign.LIMIT.selector);
+        bigQuota.belanja(penerima1, toko1, MAX_PER_TX, 3, block.timestamp + 5 minutes);
+        vm.stopPrank();
+    }
+
+    function test_BR06_BelanjaRevertsWithExpiredWhenPastExpiry() public {
+        _setupDemoState(10_000_000e18);
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.EXPIRED.selector);
+        campaign.belanja(penerima1, toko1, 50_000e18, 1, block.timestamp - 1);
+    }
+
+    function test_BR07_BelanjaRevertsWithNonceDigunakanOnReuse() public {
+        _setupDemoState(10_000_000e18);
+        vm.startPrank(relayer);
+        campaign.belanja(penerima1, toko1, 50_000e18, 1, block.timestamp + 5 minutes);
+        vm.expectRevert(Campaign.NONCE_DIGUNAKAN.selector);
+        campaign.belanja(penerima1, toko2, 50_000e18, 1, block.timestamp + 5 minutes);
+        vm.stopPrank();
+    }
+
+    function test_BR09_BelanjaRevertsWithBukanWhitelistAfterDelist() public {
+        _setupDemoState(10_000_000e18);
+        campaign.setWhitelist(toko1, false);
+        vm.prank(relayer);
+        vm.expectRevert(Campaign.BUKAN_WHITELIST.selector);
+        campaign.belanja(penerima1, toko1, 50_000e18, 1, block.timestamp + 5 minutes);
+    }
+
     event AgentDiubah(address agent);
     event WhitelistDiubah(address indexed toko, bool diizinkan);
     event PenerimaDiubah(address indexed penerima, bool diizinkan);
     event LimitDiubah(uint256 maxPerTx, uint256 maxPerHari);
     event Donasi(address indexed donatur, uint256 jumlah);
+    event Belanja(address indexed penerima, address indexed toko, uint256 jumlah, uint256 nonce);
 }
