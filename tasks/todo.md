@@ -183,43 +183,13 @@
 **Estimated scope:** S
 
 ### Task T3.3: Relayer — custodial keygen (AES-GCM) + WA→wallet map
-**Description:** Generate encrypted keypairs server-side; map WA→wallet address.
-**Acceptance criteria:**
-- [ ] `src/wallets/custodial.ts`: `keygen()` → keypair; `encrypt(privKey, MASTER_KEY)` AES-256-GCM; `decrypt`; store in `wa_wallets` (wa, address, encKey)
-- [ ] `fetchWallet(wa)` returns address; private key never leaves decrypt-on-submit
-- [ ] `src/wallets/relayer-eoa.ts`: load `RELAYER_KEY`; `getBalance()` for gas tank
-**Verification:**
-- [ ] `pnpm test`: keygen produces valid address; encrypt→decrypt roundtrip; WA→wallet lookup; balance-read
-- [ ] No private key appears in logs or test output (test fixtures use deterministic anvil accounts)
-**Dependencies:** T3.1
-**Files likely touched:** `relayer/src/wallets/custodial.ts`, `relayer/src/wallets/relayer-eoa.ts`, `relayer/test/wallets.test.ts`
-**Estimated scope:** M
+**Done:** 2026-11-21 — commit `7328c6e`. keygen via ethers.Wallet.createRandom; encrypt/decrypt via node:crypto aes-256-gcm (stdlib); storeWallet/fetchWallet in SQLite wa_wallets table (idempotent INSERT OR REPLACE). 6 tests pass. relayer-eoa.ts: loadRelayerEOA(privateKey, rpcUrl) → ethers.Wallet with provider.
 
 ### Task T3.4: Relayer — contract bindings (ethers v6)
-**Description:** ethers v6 Contract bindings from synced ABIs + typed wrappers.
-**Acceptance criteria:**
-- [ ] `src/contracts/bindings.ts`: ethers v6 `Contract` factories for MockIDRX, CampaignFactory, Campaign from `contracts/out/` ABIs
-- [ ] `src/contracts/campaign.ts`: typed wrappers — `belanja`, `donasi`, `setWhitelist`, `setPenerimaBatch`, reads (`sudahBelanja`, `isPenerima`, `isWhitelist`, pool via `token.balanceOf`)
-- [ ] Config injects deployed addresses from `docs/deployments.md`
-**Verification:**
-- [ ] `pnpm typecheck` clean
-- [ ] Unit: read `sudahBelanja(zeroAddr)` returns 0
-**Dependencies:** T2.3, T3.1
-**Files likely touched:** `relayer/src/contracts/bindings.ts`, `relayer/src/contracts/campaign.ts`
-**Estimated scope:** S
+**Done:** 2026-11-21 — commit `e5a8e6d`. bindings.ts loads ABIs from contracts/out/ forge artifacts; campaign.ts typed wrappers (inline `as any` cast for ethers Proxy methods — ponytail: ABI IS the type). No live chain test yet (T2.x deploy deferred).
 
 ### Task T3.5: Relayer — auth + recipients endpoints
-**Description:** Operator recipient-registration endpoint: create custodial wallets, return addresses for operator's batched on-chain tx.
-**Acceptance criteria:**
-- [ ] `POST /operator/recipients` (operator-auth): body `{recipients: [{nama, wa}]}`; creates wallet per WA via T3.3; returns `[{nama, wa, address}]`
-- [ ] Operator auth = signed JWT or shared secret (simple for MVP)
-- [ ] Response shape ready for web to prep `setPenerimaBatch(addrs[], true[])` tx for MetaMask sign
-- [ ] Idempotent: re-POST same WA returns existing address
-**Verification:**
-- [ ] `pnpm test`: POST 3 recipients → 3 addresses; re-POST same WA → same addresses
-**Dependencies:** T3.3, T3.4
-**Files likely touched:** `relayer/src/routes/recipients.routes.ts`, `relayer/test/recipients.test.ts`
-**Estimated scope:** S
+**Done:** 2026-11-21 — commit `e5a8e6d`. POST /operator/recipients creates custodial wallets per WA, returns [{nama, wa, address}]; idempotent via fetchWallet check-then-create. db/index.ts singleton getDb(). 2 new tests pass (3 recipients → 3 addresses; re-POST → same address).
 
 ### Task T4.1: Relayer — QR registry (nonce, expiry, single-use)
 **Description:** QR issuance + consume store: nonce generation, 5-min expiry, single-use enforcement.

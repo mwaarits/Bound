@@ -4,6 +4,7 @@ import { loadConfig } from './config.js';
 import { openSqlite } from './db/sqlite.js';
 import { requestOTPHandler, verifyOTPHandler } from './routes/auth.routes.js';
 import { registerRecipientsHandler } from './routes/recipients.routes.js';
+import { qrCreateHandler, checkoutHandler } from './routes/qr.routes.js';
 
 export const server = Fastify({ logger: false });
 
@@ -11,6 +12,8 @@ server.get('/health', async () => ({ status: 'ok' }));
 server.post('/auth/request-otp', requestOTPHandler);
 server.post('/auth/verify-otp', verifyOTPHandler);
 server.post('/operator/recipients', registerRecipientsHandler);
+server.post('/store/qr-create', qrCreateHandler);
+server.post('/penerima/checkout', checkoutHandler);
 
 let db: ReturnType<typeof openSqlite> | null = null;
 
