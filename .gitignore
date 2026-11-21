@@ -33,3 +33,7 @@ contracts/broadcast/
 
 # Agent memory store
 data/
+
+# Docs and markdown files — excluded from push
+docs/
+*.md
