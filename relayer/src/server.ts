@@ -5,6 +5,7 @@ import { openSqlite } from './db/sqlite.js';
 import { requestOTPHandler, verifyOTPHandler } from './routes/auth.routes.js';
 import { registerRecipientsHandler } from './routes/recipients.routes.js';
 import { qrCreateHandler, checkoutHandler } from './routes/qr.routes.js';
+import { faucetEmbeddedHandler, donateEmbeddedHandler } from './routes/donate.routes.js';
 
 export const server = Fastify({ logger: false });
 
@@ -14,6 +15,8 @@ server.post('/auth/verify-otp', verifyOTPHandler);
 server.post('/operator/recipients', registerRecipientsHandler);
 server.post('/store/qr-create', qrCreateHandler);
 server.post('/penerima/checkout', checkoutHandler);
+server.post('/donatur/faucet-embedded', faucetEmbeddedHandler);
+server.post('/donatur/donate-embedded', donateEmbeddedHandler);
 
 let db: ReturnType<typeof openSqlite> | null = null;
 
