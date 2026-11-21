@@ -73,16 +73,17 @@
 ### Task T1.3: CampaignFactory.sol (createCampaign + event)
 **Description:** Factory that deploys Campaign instances with operator-provided parameters.
 **Acceptance criteria:**
-- [ ] `createCampaign(token, name, jatahPerPenerima, maxPerTx, maxPerHari)` deploys new Campaign with `msg.sender` as operator
-- [ ] Emits `CampaignCreated(campaign, operator, token, name, jatah, maxPerTx, maxPerHari)`
-- [ ] No on-chain registry storage (event-only discovery per Decision 4)
-- [ ] No fee
+- [x] `createCampaign(token, name, jatahPerPenerima, maxPerTx, maxPerHari)` deploys new Campaign with `msg.sender` as operator
+- [x] Emits `CampaignCreated(campaign, operator, token, name, jatah, maxPerTx, maxPerHari)`
+- [x] No on-chain registry storage (event-only discovery per Decision 4)
+- [x] No fee
 **Verification:**
-- [ ] `forge build` clean
-- [ ] Manual: deploy factory → createCampaign → CampaignCreated event emitted with correct params
+- [x] `forge build` clean
+- [x] Manual: deploy factory → createCampaign → CampaignCreated event emitted with correct params
 **Dependencies:** T1.2
-**Files likely touched:** `contracts/src/CampaignFactory.sol`
+**Files likely touched:** `contracts/src/CampaignFactory.sol`, `contracts/test/CampaignFactory.t.sol`
 **Estimated scope:** S
+**Done:** 2026-11-21 — single TDD cycle, commit pending on this turn. 5 tests, 24 LOC source, 100% coverage. Event signature: `CampaignCreated(address indexed campaign, address indexed operator, address indexed token, string name, uint256 jatahPerPenerima, uint256 maxPerTx, uint256 maxPerHari)` — 3 indexed for dashboard filter-by (deployed-at, who-deployed, what-token). msg.sender becomes operator (BR-02 analog: only operator registers whitelist/recipients). Full contracts suite: 51 tests across 3 files, 100% total coverage.
 
 ### Task T1.4: Foundry tests: BR-01..09 + invariants
 **Description:** Full test coverage mapping each business rule to a named test, plus invariant suite.
