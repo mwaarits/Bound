@@ -39,16 +39,17 @@
 ### Task T1.1: MockIDRX.sol (ERC20 + faucet)
 **Description:** Implement the mock IDR stable token with a public faucet per SPEC-contracts Decisions.
 **Acceptance criteria:**
-- [ ] ERC20 named "Mock IDRX", symbol `mIDRX`, 18 decimals (1 token = IDR 1)
-- [ ] `faucet()` mints `10_000_000e18` per call, unlimited calls, public
-- [ ] Constructor mints initial supply to deployer
-- [ ] OpenZeppelin ERC20 base; ~10-20 lines of domain logic
+- [x] ERC20 named "Mock IDRX", symbol `mIDRX`, 18 decimals (1 token = IDR 1)
+- [x] `faucet()` mints `10_000_000e18` per call, unlimited calls, public
+- [x] Constructor mints initial supply to deployer
+- [x] OpenZeppelin ERC20 base; ~10-20 lines of domain logic
 **Verification:**
-- [ ] `forge build` clean
-- [ ] `MockIDRX.t.sol`: faucet mints correct amount; balance updates; repeat calls allowed; decimals = 18
+- [x] `forge build` clean
+- [x] `MockIDRX.t.sol`: faucet mints correct amount; balance updates; repeat calls allowed; decimals = 18
 **Dependencies:** T0.1
 **Files likely touched:** `contracts/src/MockIDRX.sol`, `contracts/test/MockIDRX.t.sol`
 **Estimated scope:** S
+**Done:** 2026-11-21 — commit `969a4b1`. TDD red→green→refactor: 10 tests (name/symbol/decimals/constructor-premint/faucet-amount/unlimited/permissionless/fuzz), 14 LOC source, 100% coverage (lines 4/4, stmts 2/2, funcs 2/2). Constructor premints INITIAL_SUPPLY=1_000_000e18 to deployer (1M IDR seed); faucet() mints FAUCET_AMOUNT=10_000_000e18 per call. Toolchain fix folded in: forge submodules via plain `git submodule add` (forge install fought subdir layout), `.gitignore` un-ignored `contracts/lib/`, remappings added for OZ + forge-std.
 
 ### Task T1.2: Campaign.sol (state, errors, donasi, belanja, setters, events)
 **Description:** Implement the Campaign contract — pool, whitelist, recipients, quota+limits, donasi, belanja (agent-restricted, expiry+nonce), setters, events, zero transfer path.
