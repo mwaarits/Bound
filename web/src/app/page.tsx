@@ -36,10 +36,6 @@ export default function Home() {
         <section className="px-4 sm:px-6 py-10 sm:py-16 md:py-20 max-w-5xl mx-auto w-full animate-enter">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             <div className="lg:col-span-7 text-center lg:text-left space-y-5">
-              <div className="inline-flex items-center gap-2 rounded-full bg-brand-surface border border-brand-primary/20 px-3 py-1 text-caption font-semibold text-brand-primary">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                Donasi Terprogram di Ethereum Sepolia
-              </div>
               <h1 className="text-[2rem] sm:text-[2.5rem] lg:text-[2.875rem] leading-[1.12] font-extrabold tracking-[-0.025em] text-text-primary text-balance">
                 Donasi yang <span className="text-brand-primary whitespace-nowrap">pasti sampai</span>{' '}
                 ke kebutuhan pokok
