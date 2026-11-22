@@ -37,3 +37,4 @@ data/
 # Docs and markdown files — excluded from push
 docs/
 *.md
+!README.md
