@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import { loadConfig } from './config.js';
-import { openSqlite } from './db/sqlite.js';
+import { getDb } from './db/index.js';
 import { requestOTPHandler, verifyOTPHandler } from './routes/auth.routes.js';
 import { registerRecipientsHandler } from './routes/recipients.routes.js';
 import { qrCreateHandler, checkoutHandler } from './routes/qr.routes.js';
@@ -25,11 +25,9 @@ server.post('/penerima/checkout', checkoutHandler);
 server.post('/donatur/faucet-embedded', faucetEmbeddedHandler);
 server.post('/donatur/donate-embedded', donateEmbeddedHandler);
 
-let db: ReturnType<typeof openSqlite> | null = null;
-
 export async function init() {
   const config = loadConfig();
-  db = openSqlite(':memory:');
+  getDb();
   await server.listen({ port: config.PORT, host: config.HOST });
 }
 

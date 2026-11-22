@@ -4,196 +4,367 @@ import Link from 'next/link';
 import { useReadContract } from 'wagmi';
 import { mockIDRXAbi, campaignAbi } from '@/lib/abi';
 import { formatIDR } from '@/lib/format';
-import { getCampaignMeta } from '@/lib/campaign-meta';
-
-const CAMPAIGN = process.env.NEXT_PUBLIC_CAMPAIGN_ADDRESS as `0x${string}`;
-const MOCKIDRX = process.env.NEXT_PUBLIC_MOCKIDRX_ADDRESS as `0x${string}`;
+import { DEFAULT_CAMPAIGN, MOCKIDRX_ADDRESS, isValidAddress } from '@/lib/campaigns';
+import { useCampaignList } from '@/hooks/useCampaignList';
+import { CampaignCard } from '@/components/CampaignCard';
 
 export default function Home() {
-  const meta = getCampaignMeta(CAMPAIGN);
-  const { data: pool, isLoading: poolLoading } = useReadContract({ address: MOCKIDRX, abi: mockIDRXAbi, functionName: 'balanceOf', args: [CAMPAIGN] });
-  const { data: jatah } = useReadContract({ address: CAMPAIGN, abi: campaignAbi, functionName: 'jatahPerPenerima' });
-  const target = BigInt(meta.target) * 10n ** 18n;
+  const { campaigns, isLoading: listLoading } = useCampaignList();
+  const validDefault = isValidAddress(DEFAULT_CAMPAIGN) && isValidAddress(MOCKIDRX_ADDRESS);
+
+  const { data: pool, isLoading: poolLoading } = useReadContract({
+    address: MOCKIDRX_ADDRESS,
+    abi: mockIDRXAbi,
+    functionName: 'balanceOf',
+    args: [DEFAULT_CAMPAIGN],
+    query: { enabled: validDefault },
+  });
+  const { data: jatah } = useReadContract({
+    address: DEFAULT_CAMPAIGN,
+    abi: campaignAbi,
+    functionName: 'jatahPerPenerima',
+    query: { enabled: isValidAddress(DEFAULT_CAMPAIGN) },
+  });
+
   const poolNum = (pool as bigint) ?? 0n;
-  const progress = target > 0n ? Math.min(100, Number(poolNum * 100n / target)) : 0;
   const poolDisplay = poolLoading ? 'Memuat...' : formatIDR(poolNum);
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base">
-      <header className="sticky top-0 z-50 p-4 bg-bg-base/95 backdrop-blur text-text-primary md:bg-chrome-dark/95 md:text-text-on-dark flex items-center justify-between border-b border-border-subtle md:border-white/10">
-        <div className="flex items-center gap-3">
-          <span className="text-[28px] leading-none font-extrabold tracking-[-0.02em] md:text-[36px]">bound</span>
-          <span className="hidden sm:inline text-caption text-text-secondary md:text-text-on-dark/50">Sepolia testnet</span>
-        </div>
-        <nav className="flex items-center gap-2 md:gap-6 text-body">
-          <Link href="/penerima" className="hidden md:inline hover:opacity-80">Penerima</Link>
-          <Link href="/toko" className="hidden md:inline hover:opacity-80">Toko</Link>
-          <Link href={`/campaign/${CAMPAIGN}`} className="hidden md:inline hover:opacity-80">Dashboard</Link>
-          <Link href={`/campaign/${CAMPAIGN}/donate`} className="px-4 py-2 rounded-default bg-brand-primary text-text-on-dark text-body font-medium min-h-[40px] flex items-center">Donasi Sekarang</Link>
-        </nav>
-      </header>
-
+    <div className="flex-1 flex flex-col bg-bg-base">
       <main className="flex-1">
-        <section className="px-6 py-16 md:py-24 max-w-5xl mx-auto w-full text-center">
-          <h1 className="text-display-lg text-text-primary mb-6 leading-tight">
-            Donasi yang <span className="text-brand-primary">tidak bisa</span><br />masuk ke judol
-          </h1>
-          <p className="text-body-lg text-text-secondary max-w-2xl mx-auto mb-10">
-            Bound mengubah donasi menjadi hak belanja yang hanya bisa dipakai di toko whitelist. Tidak ada jalur transfer bebas. Tidak ada cash-out ke judi. Semua transparan di blockchain.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href={`/campaign/${CAMPAIGN}/donate`} className="px-8 py-4 min-h-[48px] rounded-default bg-brand-primary text-text-on-dark text-body-lg font-medium flex items-center justify-center">Donasi Sekarang</Link>
-            <Link href={`/campaign/${CAMPAIGN}`} className="px-8 py-4 min-h-[48px] rounded-default border border-border-subtle text-text-primary text-body-lg font-medium flex items-center justify-center">Lihat Kampanye</Link>
-          </div>
-        </section>
-
-        <section id="kampanye" className="px-6 py-12 max-w-5xl mx-auto w-full">
-          <div className="rounded-lg bg-bg-surface border border-border-subtle shadow-sm p-6 md:p-8 space-y-6">
-            <div className="flex items-start justify-between flex-col md:flex-row gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-h2 font-semibold text-text-primary">{meta.title}</h2>
-                  <span className="rounded-full bg-brand-surface text-brand-primary text-caption px-2.5 py-1">Aktif</span>
-                </div>
-                <p className="text-body text-text-secondary max-w-lg">{meta.description}</p>
-              </div>
-            </div>
-            <div>
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="text-numeric-ledger text-h2 text-text-primary">{poolDisplay}</span>
-                <span className="text-body-sm text-text-secondary">/ {formatIDR(target)}</span>
-              </div>
-              <div className="h-2.5 rounded-default bg-border-subtle overflow-hidden">
-                <div className="h-full bg-brand-primary transition-all duration-500" style={{ width: `${progress}%` }} />
-              </div>
-              <p className="text-caption text-text-secondary mt-2">Terkumpul / Target</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-border-ledger">
-              <div>
-                <p className="text-body-sm text-text-secondary">Jatah per Penerima</p>
-                <p className="text-numeric-ledger text-text-primary mt-1">{jatah ? formatIDR(jatah as bigint) : 'Memuat...'}</p>
-              </div>
-              <div>
-                <p className="text-body-sm text-text-secondary">Progress</p>
-                <p className="text-numeric-ledger text-text-primary mt-1">{progress}%</p>
-              </div>
-              <div>
-                <p className="text-body-sm text-text-secondary">Jaringan</p>
-                <p className="text-numeric-ledger text-text-primary mt-1">Sepolia</p>
-              </div>
-            </div>
-            <Link href={`/campaign/${CAMPAIGN}/donate`} className="block w-full min-h-[48px] rounded-default bg-brand-primary text-text-on-dark text-display-md text-center leading-[48px]">Donasi Sekarang</Link>
-          </div>
-        </section>
-
-        <section id="mengapa-bound" className="px-6 py-16 max-w-5xl mx-auto w-full">
-          <h2 className="text-h2 font-semibold text-text-primary mb-2 text-center md:text-left">Mengapa Bound</h2>
-          <p className="text-body text-text-secondary mb-10 text-center md:text-left">Problem yang Bound selesaikan</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: '🚫', title: 'Anti Judol', desc: '28.4 juta NIK cocok dengan pemain judol. Rp 957 miliar mengalir dari bansos ke judi. Bound memotong jalurnya: tidak ada fungsi transfer, uang hanya keluar ke toko whitelist.', source: 'Sumber: Kemensos/PPATK 2024' },
-              { icon: '🔗', title: 'Transparan di Chain', desc: 'Setiap donasi, belanja, dan perubahan whitelist tercatat permanen di blockchain. Juri bisa membaca kolam, riwayat, dan whitelist langsung dari chain.' },
-              { icon: '📱', title: 'Mudah untuk Penerima', desc: 'Login pakai nomor WA + OTP. Scan QR toko, tekan Bayar. Tanpa seed phrase, tanpa gas. Seperti DANA, bukan seperti MetaMask.' },
-            ].map((c) => (
-              <div key={c.title} className="rounded-lg bg-bg-surface border border-border-subtle shadow-xs p-6 space-y-3">
-                <div className="text-2xl" aria-hidden="true">{c.icon}</div>
-                <h3 className="text-h3 font-semibold text-text-primary">{c.title}</h3>
-                <p className="text-body text-text-secondary">{c.desc}</p>
-                {c.source && <p className="text-caption text-text-secondary/70">{c.source}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="cara-kerja" className="px-6 py-16 max-w-5xl mx-auto w-full">
-          <h2 className="text-h2 font-semibold text-text-primary mb-10 text-center md:text-left">Cara Kerja</h2>
-          <div className="flex flex-col md:flex-row gap-6 md:gap-4 items-stretch">
-            {[
-              { num: '1', title: 'Donatur Donasi', desc: 'Pilih jumlah, hubungkan MetaMask atau login OTP. Dana masuk ke kolam kampanye di blockchain.', color: 'bg-brand-surface text-brand-primary' },
-              { num: '2', title: 'Penerima Belanja', desc: 'Login WA + OTP. Scan QR toko whitelist. Tekan Bayar. Dana keluar hanya ke toko terdaftar.', color: 'bg-bg-surface text-text-primary border border-border-subtle' },
-              { num: '3', title: 'Transparan', desc: 'Semua donasi, belanja, dan perubahan whitelist tercatat di chain. Juri bisa audit kapan saja.', color: 'bg-bg-surface-saffron text-success-text' },
-            ].map((s, i) => (
-              <div key={s.num} className="flex-1 space-y-4">
-                <div className={`w-12 h-12 rounded-full ${s.color} text-body-lg font-semibold flex items-center justify-center`}>{s.num}</div>
-                <h3 className="text-h3 font-semibold text-text-primary">{s.title}</h3>
-                <p className="text-body text-text-secondary">{s.desc}</p>
-                {i < 2 && <div className="hidden md:block text-border-ledger text-body-lg font-light pt-2">↓</div>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="untuk-siapa" className="px-6 py-16 bg-bg-surface border-y border-border-subtle">
-          <div className="max-w-5xl mx-auto w-full">
-            <h2 className="text-h2 font-semibold text-text-primary mb-2 text-center md:text-left">Untuk Siapa</h2>
-            <p className="text-body text-text-secondary mb-10 text-center md:text-left">Bound melayani 4 peran</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { role: 'Operator', desc: 'NGO/relawan membuat kampanye, daftar toko + penerima', href: `/campaign/${CAMPAIGN}`, cta: 'Buka Dashboard' },
-                { role: 'Donatur', desc: 'Donasi dengan MetaMask atau OTP login', href: `/campaign/${CAMPAIGN}/donate`, cta: 'Donasi' },
-                { role: 'Penerima', desc: 'Login WA, scan QR toko, bayar', href: '/penerima', cta: 'Login Penerima' },
-                { role: 'Toko', desc: 'Buat QR untuk tagihan, terima dana di dompet', href: '/toko', cta: 'Buat QR' },
-              ].map((r) => (
-                <Link key={r.role} href={r.href} className="block rounded-lg bg-bg-base border border-border-subtle p-5 space-y-3 hover:border-brand-primary transition-colors">
-                  <h3 className="text-h3 font-semibold text-text-primary">{r.role}</h3>
-                  <p className="text-body-sm text-text-secondary">{r.desc}</p>
-                  <p className="text-body-sm text-brand-primary font-medium">{r.cta}</p>
+        {/* Hero */}
+        <section className="px-4 sm:px-6 py-10 sm:py-16 md:py-20 max-w-5xl mx-auto w-full animate-enter">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            <div className="lg:col-span-7 text-center lg:text-left">
+              <h1 className="text-[2rem] leading-[1.15] font-extrabold tracking-[-0.02em] sm:text-display-lg md:text-display-xl text-text-primary mb-5 sm:mb-6">
+                Donasi yang <span className="text-brand-primary">pasti sampai</span>
+                <br />
+                ke kebutuhan pokok
+              </h1>
+              <p className="text-body sm:text-body-lg text-text-secondary max-w-2xl mx-auto lg:mx-0 mb-8">
+                Bound mengunci dana donasi di smart contract agar penerima hanya bisa membelanjakannya
+                di toko whitelist terdaftar. Dana tidak bisa ditarik tunai atau dipakai di luar tujuan
+                bantuan, dan setiap transaksi tercatat di Ethereum Sepolia.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3.5 justify-center lg:justify-start">
+                <Link
+                  href={`/campaign/${DEFAULT_CAMPAIGN}/donate`}
+                  className="px-7 py-3.5 min-h-[48px] rounded-default bg-brand-primary hover:bg-brand-primary-deep active:scale-[0.98] text-text-on-dark text-body sm:text-body-lg font-semibold flex items-center justify-center transition-all"
+                >
+                  Donasi Sekarang
                 </Link>
-              ))}
+                <Link
+                  href="/campaigns"
+                  className="px-7 py-3.5 min-h-[48px] rounded-default border border-border-subtle bg-bg-surface hover:border-brand-primary active:scale-[0.98] text-text-primary text-body sm:text-body-lg font-medium flex items-center justify-center transition-all"
+                >
+                  Lihat Daftar Kampanye ({campaigns.length})
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 flex justify-center animate-enter-delay-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/illustrations/hero-donation.svg"
+                alt="Ilustrasi kotak donasi bantuan kebutuhan pokok"
+                width={460}
+                height={293}
+                fetchPriority="high"
+                className="w-full max-w-[340px] sm:max-w-[420px] h-auto"
+              />
             </div>
           </div>
         </section>
 
-        <section id="transparansi" className="px-6 py-16 max-w-5xl mx-auto w-full">
-          <div className="rounded-lg bg-chrome-dark text-text-on-dark p-8 md:p-12 space-y-6">
-            <h2 className="text-h2 font-semibold">Transparansi Mutlak</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Active Campaigns (supports 1 or many) */}
+        <section id="kampanye" className="px-4 sm:px-6 py-10 sm:py-12 bg-bg-surface border-y border-border-subtle">
+          <div className="max-w-5xl mx-auto w-full space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <h2 className="text-h2 font-semibold text-text-primary">Kampanye aktif</h2>
+                <p className="text-body text-text-secondary mt-1">
+                  Pilih kampanye untuk berdonasi atau memeriksa saldo dan riwayatnya langsung dari kontrak.
+                </p>
+              </div>
+              <Link
+                href="/campaigns"
+                className="inline-flex items-center gap-1.5 text-body-sm font-semibold text-brand-primary hover:text-brand-primary-deep shrink-0"
+              >
+                Semua kampanye & buat baru
+              </Link>
+            </div>
+
+            {listLoading && campaigns.length === 0 ? (
+              <div className="rounded-lg bg-bg-base border border-border-subtle p-8 text-center text-body text-text-secondary">
+                Memuat daftar kampanye...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center sm:justify-items-start">
+                {campaigns.slice(0, 6).map((c) => (
+                  <CampaignCard key={c.address} campaign={c} />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Why Bound */}
+        <section id="mengapa-bound" className="px-4 sm:px-6 py-12 sm:py-16 max-w-5xl mx-auto w-full space-y-8 animate-enter-delay-1">
+          <div>
+            <h2 className="text-h2 font-semibold text-text-primary mb-2">Mengapa Bound</h2>
+            <p className="text-body text-text-secondary">
+              Kenapa penyaluran bantuan bencana perlu dikunci langsung di smart contract
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+            <div className="md:col-span-7 rounded-lg bg-brand-surface border border-brand-primary/25 p-6 sm:p-7 flex flex-col justify-between space-y-5">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-default bg-bg-base border border-brand-primary/20 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icons/shield-lock.svg" alt="" width={24} height={24} className="w-6 h-6" />
+                </div>
+                <p className="text-caption font-semibold text-brand-primary">Penguncian di level kontrak</p>
+                <h3 className="text-h2 font-bold text-text-primary">Dana hanya keluar ke toko terdaftar</h3>
+                <p className="text-body text-text-secondary leading-relaxed">
+                  Pada bantuan tunai biasa, pemakaian dana sulit dipastikan setelah berpindah tangan.
+                  Di Bound, kontrak tidak menyediakan fungsi tarik tunai atau kirim bebas ke rekening
+                  lain. Dana hanya bisa berpindah saat penerima berbelanja di alamat toko yang
+                  disetujui operator.
+                </p>
+              </div>
+              <p className="text-caption text-text-secondary/80">
+                Aturan dijalankan otomatis oleh smart contract di Ethereum Sepolia.
+              </p>
+            </div>
+
+            <div className="md:col-span-5 flex flex-col gap-4 justify-between">
+              <div className="flex-1 rounded-lg bg-bg-surface border border-border-subtle p-5 sm:p-6 space-y-2.5 hover:border-brand-primary/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-default bg-bg-base border border-border-subtle flex items-center justify-center shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icons/blockchain.svg" alt="" width={20} height={20} className="w-5 h-5" />
+                  </span>
+                  <h3 className="text-h3 font-semibold text-text-primary">Bisa diaudit siapa saja</h3>
+                </div>
+                <p className="text-body-sm text-text-secondary leading-relaxed">
+                  Setiap donasi, pembayaran ke toko, dan perubahan daftar whitelist tercatat di
+                  Ethereum Sepolia. Publik bisa memeriksa kolam dana langsung dari kontrak.
+                </p>
+              </div>
+              <div className="flex-1 rounded-lg bg-bg-surface border border-border-subtle p-5 sm:p-6 space-y-2.5 hover:border-brand-primary/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-default bg-bg-base border border-border-subtle flex items-center justify-center shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icons/qr-scan.svg" alt="" width={20} height={20} className="w-5 h-5" />
+                  </span>
+                  <h3 className="text-h3 font-semibold text-text-primary">Penerima tidak perlu dompet kripto</h3>
+                </div>
+                <p className="text-body-sm text-text-secondary leading-relaxed">
+                  Penerima masuk dengan nomor WhatsApp dan kode OTP, lalu memindai QR toko untuk
+                  membayar. Relayer menanggung gas fee, jadi penerima tidak perlu seed phrase atau ETH.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="cara-kerja" className="px-4 sm:px-6 py-12 sm:py-16 bg-bg-surface border-y border-border-subtle">
+          <div className="max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            <div className="md:col-span-4 space-y-2">
+              <h2 className="text-h2 font-semibold text-text-primary">Cara kerja</h2>
+              <p className="text-body text-text-secondary">
+                Empat langkah penyaluran dana dari donatur ke toko kebutuhan pokok.
+              </p>
+            </div>
+            <ol className="md:col-span-8 divide-y divide-border-subtle border-y border-border-subtle">
               {[
-                { label: 'Kolam Kampanye', value: poolDisplay, unit: 'mIDRX' },
-                { label: 'Jatah per Penerima', value: jatah ? formatIDR(jatah as bigint) : 'Memuat...', unit: 'mIDRX' },
-                { label: 'Jalur Transfer', value: '0', unit: 'tidak ada' },
+                {
+                  num: '01',
+                  title: 'Operator menyiapkan kampanye',
+                  desc: 'Operator membuat kontrak kampanye, menentukan batas belanja tiap penerima, lalu mendaftarkan toko whitelist dan nomor WA penerima.',
+                },
+                {
+                  num: '02',
+                  title: 'Donatur mengirim m-IDRX',
+                  desc: 'Donatur mengirim m-IDRX ke kolam kontrak kampanye lewat MetaMask atau akun WA + OTP.',
+                },
+                {
+                  num: '03',
+                  title: 'Toko membuat QR tagihan',
+                  desc: 'Kasir toko memasukkan nominal belanja untuk membuat QR sekali pakai yang berlaku 5 menit.',
+                },
+                {
+                  num: '04',
+                  title: 'Penerima memindai QR dan membayar',
+                  desc: 'Penerima masuk dengan WA + OTP, memindai QR toko, lalu menekan Bayar. Kontrak langsung mengirim dana ke dompet toko.',
+                },
               ].map((s) => (
-                <div key={s.label} className="space-y-1">
-                  <p className="text-body-sm text-text-on-dark/60">{s.label}</p>
+                <li key={s.num} className="py-5 flex items-start gap-5">
+                  <span className="text-numeric-ledger text-body-sm font-semibold text-brand-primary pt-0.5 shrink-0">
+                    {s.num}
+                  </span>
+                  <div className="space-y-1">
+                    <h3 className="text-body-lg font-semibold text-text-primary">{s.title}</h3>
+                    <p className="text-body-sm text-text-secondary leading-relaxed">{s.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* For Who */}
+        <section id="untuk-siapa" className="px-6 py-16 max-w-5xl mx-auto w-full">
+          <h2 className="text-h2 font-semibold text-text-primary mb-2 text-center md:text-left">
+            Masuk sesuai peran
+          </h2>
+          <p className="text-body text-text-secondary mb-10 text-center md:text-left">
+            Pilih halaman sesuai peran Anda dalam kampanye ini
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                role: 'Operator / NGO',
+                badge: 'MetaMask',
+                icon: '/icons/dashboard.svg',
+                desc: 'Buat kampanye baru, atur toko whitelist, dan daftarkan penerima bantuan.',
+                href: '/campaigns',
+                cta: 'Kelola kampanye',
+              },
+              {
+                role: 'Donatur',
+                badge: 'MetaMask / OTP',
+                icon: '/icons/donation.svg',
+                desc: 'Kirim m-IDRX ke kolam kampanye dan pantau pemakaiannya di dashboard.',
+                href: `/campaign/${DEFAULT_CAMPAIGN}/donate`,
+                cta: 'Kirim donasi',
+              },
+              {
+                role: 'Penerima',
+                badge: 'WA + OTP',
+                icon: '/icons/qr-scan.svg',
+                desc: 'Lihat sisa jatah belanja, pindai QR toko terdaftar, lalu bayar tanpa gas fee.',
+                href: '/penerima',
+                cta: 'Masuk sebagai penerima',
+              },
+              {
+                role: 'Toko whitelist',
+                badge: 'QR tagihan',
+                icon: '/icons/store.svg',
+                desc: 'Buat QR nominal belanja untuk penerima dan terima m-IDRX langsung di dompet toko.',
+                href: '/toko',
+                cta: 'Buat QR toko',
+              },
+            ].map((r) => (
+              <Link
+                key={r.role}
+                href={r.href}
+                className="group flex flex-col justify-between rounded-lg bg-bg-surface border border-border-subtle p-5 space-y-4 hover:border-brand-primary hover:bg-bg-base hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="w-9 h-9 rounded-default bg-bg-base border border-border-subtle flex items-center justify-center shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.icon} alt="" width={20} height={20} className="w-5 h-5" />
+                    </span>
+                    <span className="inline-block rounded-sm bg-brand-surface text-brand-primary text-caption font-medium px-2 py-0.5">
+                      {r.badge}
+                    </span>
+                  </div>
+                  <h3 className="text-h3 font-semibold text-text-primary">{r.role}</h3>
+                  <p className="text-body-sm text-text-secondary leading-relaxed">{r.desc}</p>
+                </div>
+                <p className="text-body-sm text-brand-primary font-semibold underline-offset-4 group-hover:underline">
+                  {r.cta}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Transparency */}
+        <section id="transparansi" className="px-6 pb-16 max-w-5xl mx-auto w-full">
+          <div className="rounded-xl bg-chrome-dark text-text-on-dark p-8 md:p-12 space-y-6 border border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-h2 font-semibold">Data langsung dari kontrak</h2>
+              <span className="inline-flex items-center gap-1.5 text-caption text-emerald-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                Ethereum Sepolia
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-2">
+              {[
+                { label: 'Kolam kampanye utama', value: poolDisplay, unit: 'm-IDRX' },
+                {
+                  label: 'Jatah per penerima',
+                  value: jatah ? formatIDR(jatah as bigint) : 'Memuat...',
+                  unit: 'm-IDRX',
+                },
+                { label: 'Kampanye terdeteksi', value: String(campaigns.length), unit: 'kontrak aktif' },
+              ].map((s) => (
+                <div key={s.label} className="rounded-lg bg-white/5 border border-white/10 p-4 space-y-1">
+                  <p className="text-caption text-text-on-dark/70">{s.label}</p>
                   <p className="text-numeric-ledger text-text-on-dark text-h2">{s.value}</p>
-                  <p className="text-caption text-text-on-dark/40">{s.unit}</p>
+                  <p className="text-caption text-text-on-dark/70">{s.unit}</p>
                 </div>
               ))}
             </div>
-            <p className="text-body text-text-on-dark/60">Semua data di atas dibaca langsung dari smart contract di Ethereum Sepolia. Tidak ada database tersembunyi. Tidak ada server yang bisa dimanipulasi.</p>
+            <p className="text-body-sm text-text-on-dark/75 leading-relaxed">
+              Angka di atas dibaca langsung dari smart contract di Ethereum Sepolia, bukan dari
+              database saldo internal.
+            </p>
           </div>
         </section>
       </main>
 
-      <footer className="bg-chrome-dark text-text-on-dark">
+      <footer className="bg-chrome-dark text-text-on-dark border-t border-white/10">
         <div className="max-w-5xl mx-auto w-full px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div className="space-y-4">
+            <div className="space-y-3">
               <span className="text-[24px] font-extrabold tracking-[-0.02em]">bound</span>
-              <p className="text-body-sm text-text-on-dark/60">Donasi terprogram untuk bencana. Anti-judol by design.</p>
+              <p className="text-body-sm text-text-on-dark/70">
+                Donasi terprogram untuk bantuan bencana. Hanya bisa dibelanjakan di toko whitelist.
+              </p>
             </div>
             <div className="space-y-3">
-              <h4 className="text-body-sm font-semibold text-text-on-dark/80">Platform</h4>
+              <h2 className="text-body-sm font-semibold text-text-on-dark/90">Platform</h2>
               <div className="space-y-2">
-                <Link href={`/campaign/${CAMPAIGN}/donate`} className="block text-body-sm text-text-on-dark/60 hover:text-text-on-dark">Donasi</Link>
-                <Link href="/penerima" className="block text-body-sm text-text-on-dark/60 hover:text-text-on-dark">Penerima</Link>
-                <Link href="/toko" className="block text-body-sm text-text-on-dark/60 hover:text-text-on-dark">Toko</Link>
-                <Link href={`/campaign/${CAMPAIGN}`} className="block text-body-sm text-text-on-dark/60 hover:text-text-on-dark">Dashboard</Link>
+                <Link href="/campaigns" className="block text-body-sm text-text-on-dark/75 hover:text-text-on-dark">
+                  Daftar Kampanye
+                </Link>
+                <Link
+                  href={`/campaign/${DEFAULT_CAMPAIGN}/donate`}
+                  className="block text-body-sm text-text-on-dark/75 hover:text-text-on-dark"
+                >
+                  Donasi
+                </Link>
+                <Link href="/penerima" className="block text-body-sm text-text-on-dark/75 hover:text-text-on-dark">
+                  Penerima
+                </Link>
+                <Link href="/toko" className="block text-body-sm text-text-on-dark/75 hover:text-text-on-dark">
+                  Toko
+                </Link>
               </div>
             </div>
             <div className="space-y-3">
-              <h4 className="text-body-sm font-semibold text-text-on-dark/80">Tech Stack</h4>
-              <div className="space-y-2 text-body-sm text-text-on-dark/60">
+              <h2 className="text-body-sm font-semibold text-text-on-dark/90">Tech Stack</h2>
+              <div className="space-y-2 text-body-sm text-text-on-dark/75">
                 <p>Solidity + Foundry</p>
-                <p>Next.js + wagmi</p>
-                <p>Node.js + ethers</p>
+                <p>Next.js + wagmi + viem</p>
+                <p>Node.js Relayer</p>
                 <p>Ethereum Sepolia</p>
               </div>
             </div>
           </div>
           <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-caption text-text-on-dark/40">Testnet demo, bukan mainnet. Jangan kirim uang asli.</p>
-            <p className="text-caption text-text-on-dark/40">© 2026 Bound, Campus Web3 Hackathon</p>
+            <p className="text-caption text-text-on-dark/70">
+              Testnet demo, bukan mainnet. Jangan kirim uang asli.
+            </p>
+            <p className="text-caption text-text-on-dark/70">
+              © 2026 Bound, Campus Web3 Hackathon
+            </p>
           </div>
         </div>
       </footer>

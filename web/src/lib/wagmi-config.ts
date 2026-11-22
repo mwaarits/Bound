@@ -1,14 +1,18 @@
 'use client';
 
-import { createConfig, http } from 'wagmi';
+import { createConfig, http, injected } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 
-// Deployed on Ethereum Sepolia (chain ID 11155111) — not Base Sepolia.
-// MetaMask was on Ethereum Sepolia during Remix deploy; contracts work identically.
+const SEPOLIA_RPC =
+  process.env.NEXT_PUBLIC_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+
+// Deployed on Ethereum Sepolia (chain ID 11155111).
+// Configured strictly for MetaMask browser extension.
 export const wagmiConfig = createConfig({
   chains: [sepolia],
-  multiInjectedProviderDiscovery: true,
+  connectors: [injected({ target: 'metaMask' })],
+  multiInjectedProviderDiscovery: false,
   transports: {
-    [sepolia.id]: http('https://ethereum-sepolia-rpc.publicnode.com'),
+    [sepolia.id]: http(SEPOLIA_RPC),
   },
 });

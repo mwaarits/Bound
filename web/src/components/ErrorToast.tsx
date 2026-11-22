@@ -8,6 +8,11 @@ const ERROR_MAP: Record<string, string> = {
   LIMIT: 'Batas terlampaui',
   EXPIRED: 'QR kedaluwarsa',
   NONCE_DIGUNAKAN: 'QR sudah digunakan',
+  BukanAgent: 'Relayer belum terdaftar sebagai agent pada kontrak kampanye',
+  NO_RELAYER_GAS: 'Saldo SepoliaETH akun Bound Relayer habis untuk membayar gas.',
+  INVALID_QR: 'Format QR tidak valid',
+  invalid_code: 'Kode OTP salah. Gunakan kode 123456 untuk mode demo.',
+  'OTP salah': 'Kode OTP salah. Gunakan kode 123456 untuk mode demo.',
   CHAIN_ERROR: 'Kesalahan jaringan',
   APPROVE_FAILED: 'Gagal menyetujui token',
 };

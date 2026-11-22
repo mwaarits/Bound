@@ -1,10 +1,11 @@
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Providers } from '@/components/Providers';
+import { Navbar } from '@/components/Navbar';
 import './globals.css';
 
 export const metadata = {
-  title: 'Bound, Donasi Anti-Judol',
-  description: 'Donasi terprogram yang hanya bisa dibelanjakan di toko whitelist.',
+  title: 'Bound, Donasi Terprogram Tepat Sasaran',
+  description: 'Donasi bantuan bencana yang hanya bisa dibelanjakan di toko whitelist terdaftar.',
 };
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -14,18 +15,14 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-bg-base text-text-primary font-sans">
-        <Providers>{children}</Providers>
+    <html lang="id" className={plusJakarta.variable}>
+      <body className={`${plusJakarta.className} bg-bg-base text-text-primary font-sans min-h-screen flex flex-col`}>
+        <Providers>
+          <Navbar />
+          <div className="flex-1 flex flex-col">{children}</div>
+        </Providers>
       </body>
     </html>
   );

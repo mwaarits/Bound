@@ -10,6 +10,7 @@ const config: Config = {
         'bg-surface-emerald': '#ECFDF5',
         'bg-surface-saffron': '#FEF3C7',
         'bg-chrome-dark': '#0A0A0A',
+        'chrome-dark': '#0A0A0A',
         'text-primary': '#0A0A0A',
         'text-secondary': '#404040',
         'text-on-dark': '#FFFFFF',
@@ -26,7 +27,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-plus-jakarta)', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
+        mono: ['var(--font-plus-jakarta)', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       fontSize: {
         'display-xl': ['3.5rem', { lineHeight: '4rem', letterSpacing: '-0.02em', fontWeight: '800' }],

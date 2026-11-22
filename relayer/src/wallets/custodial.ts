@@ -27,10 +27,10 @@ export function decrypt(encHex: string, masterKeyHex: string): string {
 }
 
 export function storeWallet(db: DB, wa: string, address: string, encKey: string): void {
-  db.prepare('INSERT OR REPLACE INTO wa_wallets (wa, address, enc_priv_key, created_at) VALUES (?, ?, ?, ?)').run(wa, address, encKey, Date.now());
+  db.prepare('INSERT OR REPLACE INTO wa_wallets (wa, address, enc_priv_key, created_at) VALUES (?, ?, ?, ?)').run(wa.trim(), address, encKey, Date.now());
 }
 
 export function fetchWallet(db: DB, wa: string): { address: string; encKey: string } | undefined {
-  const row = db.prepare('SELECT address, enc_priv_key FROM wa_wallets WHERE wa = ?').get(wa) as { address: string; enc_priv_key: string } | undefined;
+  const row = db.prepare('SELECT address, enc_priv_key FROM wa_wallets WHERE wa = ?').get(wa.trim()) as { address: string; enc_priv_key: string } | undefined;
   return row ? { address: row.address, encKey: row.enc_priv_key } : undefined;
 }
