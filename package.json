@@ -4,6 +4,9 @@
   "private": true,
   "description": "Bound — programmable donations spendable only at whitelisted stores. Hackathon testnet MVP.",
   "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "build:contracts": "pnpm --filter bound-contracts build",
     "build:relayer": "pnpm --filter bound-relayer build",

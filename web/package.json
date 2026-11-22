@@ -2,9 +2,12 @@
   "name": "bound-web",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm sync-abis && next build",
+    "build": "tsx scripts/sync-abis.ts && next build",
     "start": "next start",
     "test": "vitest run",
     "test:e2e": "playwright test",
