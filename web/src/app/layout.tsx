@@ -4,7 +4,7 @@ import { Navbar } from '@/components/Navbar';
 import './globals.css';
 
 export const metadata = {
-  title: 'Bound, Donasi Terprogram Tepat Sasaran',
+  title: 'Bound | Donasi Terprogram Tepat Sasaran',
   description: 'Donasi bantuan bencana yang hanya bisa dibelanjakan di toko whitelist terdaftar.',
 };
 

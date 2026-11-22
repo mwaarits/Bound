@@ -6,8 +6,13 @@ import { requestOTPHandler, verifyOTPHandler } from './routes/auth.routes.js';
 import { registerRecipientsHandler } from './routes/recipients.routes.js';
 import { qrCreateHandler, checkoutHandler } from './routes/qr.routes.js';
 import { faucetEmbeddedHandler, donateEmbeddedHandler } from './routes/donate.routes.js';
+import {
+  getCampaignsMetaHandler,
+  getCampaignMetaHandler,
+  postCampaignMetaHandler,
+} from './routes/campaigns.routes.js';
 
-export const server = Fastify({ logger: false });
+export const server = Fastify({ logger: false, bodyLimit: 2 * 1024 * 1024 });
 
 server.addHook('onRequest', async (req, reply) => {
   reply.header('Access-Control-Allow-Origin', '*');
@@ -24,6 +29,9 @@ server.post('/store/qr-create', qrCreateHandler);
 server.post('/penerima/checkout', checkoutHandler);
 server.post('/donatur/faucet-embedded', faucetEmbeddedHandler);
 server.post('/donatur/donate-embedded', donateEmbeddedHandler);
+server.get('/campaigns/meta', getCampaignsMetaHandler);
+server.get('/campaigns/:addr/meta', getCampaignMetaHandler);
+server.post('/campaigns/:addr/meta', postCampaignMetaHandler);
 
 export async function init() {
   const config = loadConfig();

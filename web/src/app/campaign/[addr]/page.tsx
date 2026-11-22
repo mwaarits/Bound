@@ -6,6 +6,7 @@ import {
   useAccount,
   usePublicClient,
   useReadContract,
+  useSignMessage,
   useSwitchChain,
   useWriteContract,
 } from 'wagmi';
@@ -15,8 +16,8 @@ import { campaignAbi, mockIDRXAbi } from '@/lib/abi';
 import { formatIDR } from '@/lib/format';
 import {
   compressImageFile,
-  getCampaignMeta,
-  setCampaignMeta,
+  saveCampaignMetaRemote,
+  useCampaignMeta,
   type CampaignMeta,
 } from '@/lib/campaign-meta';
 import {
@@ -62,7 +63,7 @@ export default function CampaignDashboard({ params }: { params: { addr: string }
     }
   }, [isConnected, ownerLoading, ownerAddr, isOperator, view]);
 
-  const meta = getCampaignMeta(campaignAddr);
+  const [meta] = useCampaignMeta(campaignAddr, metaVersion);
   const {
     events,
     whitelist,
@@ -456,6 +457,7 @@ function OperatorView({
   const publicClient = usePublicClient();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
+  const { signMessageAsync } = useSignMessage();
   const isWrongNetwork = isConnected && walletChainId !== sepolia.id;
   const { data: currentAgent, refetch: refetchAgent } = useReadContract({
     address: campaignAddr,
@@ -463,7 +465,8 @@ function OperatorView({
     functionName: 'agent',
   });
 
-  const [meta, setMeta] = useState<CampaignMeta>(() => getCampaignMeta(campaignAddr));
+  const [meta, setMeta] = useCampaignMeta(campaignAddr);
+  const [metaSaving, setMetaSaving] = useState(false);
   const [agentAddr, setAgentAddr] = useState('');
   const [agentBusy, setAgentBusy] = useState(false);
   const [storeAddr, setStoreAddr] = useState('');
@@ -565,13 +568,18 @@ function OperatorView({
     agentOnChain && agentOnChain.toLowerCase() !== '0x0000000000000000000000000000000000000000'
   );
 
-  function saveMeta() {
+  async function saveMeta() {
+    setMetaSaving(true);
+    notify('loading', 'Menunggu tanda tangan MetaMask (gratis, tanpa gas fee) untuk menyimpan ke server...');
     try {
-      setCampaignMeta(campaignAddr, meta);
+      await saveCampaignMetaRemote(campaignAddr, meta, signMessageAsync);
       onMetaSaved();
-      notify('success', 'Metadata dan foto kampanye disimpan di browser ini.');
-    } catch {
-      notify('error', 'Ukuran gambar terlalu besar untuk disimpan. Coba gambar lain atau gunakan URL.');
+      notify('success', 'Metadata dan foto kampanye disimpan ke server untuk semua pengunjung.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal menyimpan metadata ke server.';
+      notify('error', msg);
+    } finally {
+      setMetaSaving(false);
     }
   }
 
@@ -922,10 +930,11 @@ function OperatorView({
 
           <button
             type="button"
-            onClick={saveMeta}
-            className="min-h-[44px] px-6 rounded-default bg-brand-primary hover:bg-brand-primary-deep text-text-on-dark text-body-sm font-semibold"
+            disabled={metaSaving}
+            onClick={() => void saveMeta()}
+            className="min-h-[44px] px-6 rounded-default bg-brand-primary hover:bg-brand-primary-deep disabled:opacity-50 text-text-on-dark text-body-sm font-semibold"
           >
-            Simpan Metadata
+            {metaSaving ? 'Menyimpan...' : 'Simpan Metadata'}
           </button>
         </div>
       </section>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useReadContract } from 'wagmi';
 import { campaignAbi, mockIDRXAbi } from '@/lib/abi';
 import { formatIDR } from '@/lib/format';
-import { getCampaignMeta, type CampaignMeta } from '@/lib/campaign-meta';
+import { useCampaignMeta } from '@/lib/campaign-meta';
 import {
   MOCKIDRX_ADDRESS,
   isValidAddress,
@@ -15,19 +15,12 @@ import {
 
 export function CampaignCard({ campaign }: { campaign: CampaignRecord }) {
   const addr = campaign.address;
-  const [meta, setMeta] = useState<CampaignMeta>(() => ({
-    title: 'Banjir Demak 2025',
-    description:
-      'Bantuan donasi untuk korban banjir Demak. Dana hanya bisa dibelanjakan di toko whitelist yang terdaftar.',
-    target: '50000000',
-    imageUrl: '',
-  }));
+  const [meta] = useCampaignMeta(addr);
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
-    setMeta(getCampaignMeta(addr));
     setImgError(false);
-  }, [addr]);
+  }, [addr, meta.imageUrl]);
 
   const title =
     campaign.name && meta.title === 'Banjir Demak 2025' && !campaign.isDefault

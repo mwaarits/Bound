@@ -12,7 +12,7 @@ import { sepolia } from 'wagmi/chains';
 import { relayerPost } from '@/lib/relayer-client';
 import { mockIDRXAbi, campaignAbi } from '@/lib/abi';
 import { formatIDR } from '@/lib/format';
-import { getCampaignMeta } from '@/lib/campaign-meta';
+import { useCampaignMeta } from '@/lib/campaign-meta';
 import {
   MOCKIDRX_ADDRESS,
   etherscanTxUrl,
@@ -50,7 +50,7 @@ function saveMockTopup(key: string, value: bigint): void {
 
 export function DonateForm({ campaignAddr }: { campaignAddr: string }) {
   const [path, setPath] = useState<'own' | 'embedded'>('own');
-  const meta = getCampaignMeta(campaignAddr);
+  const [meta] = useCampaignMeta(campaignAddr);
 
   return (
     <div className="rounded-xl bg-bg-base border border-border-subtle shadow-xs p-6 sm:p-8 space-y-6">

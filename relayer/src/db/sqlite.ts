@@ -24,6 +24,15 @@ CREATE TABLE IF NOT EXISTS gas_tank_ledger (
   gas_cost_gwei INTEGER,
   created_at    INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS campaign_meta (
+  address     TEXT PRIMARY KEY,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL,
+  target      TEXT NOT NULL,
+  image_url   TEXT NOT NULL DEFAULT '',
+  updated_at  INTEGER NOT NULL
+);
 `;
 
 export function openSqlite(path: string): ReturnType<typeof Database> {

@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAccount, usePublicClient, useSwitchChain, useWriteContract } from 'wagmi';
+import { useAccount, usePublicClient, useSignMessage, useSwitchChain, useWriteContract } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import { decodeEventLog } from 'viem';
 import { campaignFactoryAbi } from '@/lib/abi';
-import { compressImageFile, setCampaignMeta } from '@/lib/campaign-meta';
+import { compressImageFile, saveCampaignMetaRemote, setCampaignMeta } from '@/lib/campaign-meta';
 import {
   CAMPAIGN_FACTORY,
   MOCKIDRX_ADDRESS,
@@ -28,6 +28,7 @@ export default function CampaignsPage() {
   const { switchChain, isPending: isSwitching } = useSwitchChain();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
+  const { signMessageAsync } = useSignMessage();
   const isWrongNetwork = isConnected && walletChainId !== sepolia.id;
 
   const [showCreate, setShowCreate] = useState(false);
@@ -126,21 +127,30 @@ export default function CampaignsPage() {
       }
 
       if (deployedAddr) {
-        setCampaignMeta(deployedAddr, {
+        const newMeta = {
           title: title.trim(),
           description:
             description.trim() ||
             'Kampanye donasi terprogram. Dana hanya bisa dibelanjakan di toko whitelist.',
           target: target.trim() || '50000000',
           imageUrl: imageUrl.trim(),
-        });
+        };
+        setCampaignMeta(deployedAddr, newMeta);
+        try {
+          setCreateStatus('Menyimpan foto & info kampanye ke server (tanda tangan tanpa gas)...');
+          await saveCampaignMetaRemote(deployedAddr, newMeta, signMessageAsync);
+          setCreateStatus('Kampanye baru dan fotonya berhasil disimpan!');
+        } catch {
+          setCreateStatus(
+            'Kampanye dibuat di blockchain! Info/foto disimpan lokal; Anda bisa menyimpan ke server lewat Panel Operator.'
+          );
+        }
         addLocalCampaign({
           address: deployedAddr,
           name: title.trim(),
           operator: address,
         });
         setCreatedCampaign({ addr: deployedAddr, txHash });
-        setCreateStatus('Kampanye baru berhasil dibuat di blockchain!');
         setTitle('');
         setDescription('');
         setImageUrl('');

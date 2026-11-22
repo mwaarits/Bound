@@ -70,7 +70,7 @@ export default function TokoPage() {
       <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Left Info Card on desktop; stacks below form on phone */}
         <aside className="order-2 lg:order-1 lg:col-span-5 rounded-xl bg-bg-surface border border-border-subtle p-6 space-y-5 animate-enter">
-          <div className="h-40 w-full rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-3 overflow-hidden">
+          <div className="h-48 w-full rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-4 overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/illustrations/toko-shopping.svg"

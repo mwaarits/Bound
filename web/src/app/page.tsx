@@ -35,18 +35,21 @@ export default function Home() {
         {/* Hero */}
         <section className="px-4 sm:px-6 py-10 sm:py-16 md:py-20 max-w-5xl mx-auto w-full animate-enter">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            <div className="lg:col-span-7 text-center lg:text-left">
-              <h1 className="text-[2rem] leading-[1.15] font-extrabold tracking-[-0.02em] sm:text-display-lg md:text-display-xl text-text-primary mb-5 sm:mb-6">
-                Donasi yang <span className="text-brand-primary">pasti sampai</span>
-                <br />
+            <div className="lg:col-span-7 text-center lg:text-left space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-brand-surface border border-brand-primary/20 px-3 py-1 text-caption font-semibold text-brand-primary">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+                Donasi Terprogram di Ethereum Sepolia
+              </div>
+              <h1 className="text-[2rem] sm:text-[2.5rem] lg:text-[2.875rem] leading-[1.12] font-extrabold tracking-[-0.025em] text-text-primary text-balance">
+                Donasi yang <span className="text-brand-primary whitespace-nowrap">pasti sampai</span>{' '}
                 ke kebutuhan pokok
               </h1>
-              <p className="text-body sm:text-body-lg text-text-secondary max-w-2xl mx-auto lg:mx-0 mb-8">
+              <p className="text-body sm:text-body-lg text-text-secondary max-w-xl mx-auto lg:mx-0 leading-relaxed">
                 Bound mengunci dana donasi di smart contract agar penerima hanya bisa membelanjakannya
                 di toko whitelist terdaftar. Dana tidak bisa ditarik tunai atau dipakai di luar tujuan
                 bantuan, dan setiap transaksi tercatat di Ethereum Sepolia.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3.5 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3.5 justify-center lg:justify-start pt-1">
                 <Link
                   href={`/campaign/${DEFAULT_CAMPAIGN}/donate`}
                   className="px-7 py-3.5 min-h-[48px] rounded-default bg-brand-primary hover:bg-brand-primary-deep active:scale-[0.98] text-text-on-dark text-body sm:text-body-lg font-semibold flex items-center justify-center transition-all"
@@ -62,16 +65,18 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="lg:col-span-5 flex justify-center animate-enter-delay-1">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/illustrations/hero-donation.svg"
-                alt="Ilustrasi kotak donasi bantuan kebutuhan pokok"
-                width={460}
-                height={293}
-                fetchPriority="high"
-                className="w-full max-w-[340px] sm:max-w-[420px] h-auto"
-              />
+            <div className="lg:col-span-5 flex justify-center lg:justify-end animate-enter-delay-1">
+              <div className="w-full max-w-[380px] sm:max-w-[440px] lg:max-w-full rounded-2xl bg-bg-surface border border-border-subtle p-6 sm:p-8 shadow-xs flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/illustrations/hero-donation.svg"
+                  alt="Ilustrasi kotak donasi bantuan kebutuhan pokok"
+                  width={460}
+                  height={296}
+                  fetchPriority="high"
+                  className="w-full h-auto object-contain"
+                />
+              </div>
             </div>
           </div>
         </section>
