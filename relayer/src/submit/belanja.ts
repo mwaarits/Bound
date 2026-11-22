@@ -1,8 +1,7 @@
 import { ethers } from 'ethers';
-import { readFileSync } from 'node:fs';
+import { CampaignAbi } from '../abi/Campaign.abi.js';
 
-const abi = JSON.parse(readFileSync(new URL('../../../contracts/out/Campaign.sol/Campaign.json', import.meta.url), 'utf-8')).abi;
-const iface = new ethers.Interface(abi);
+const iface = new ethers.Interface(CampaignAbi);
 
 export function decodeCanonicalError(errorData: string): string {
   try {
